@@ -64,7 +64,7 @@ The petfinder.com developer account is tied to your user petfinder user account 
 
 Once your account is created navigate  to [www.petfinder.com/developers](https://www.petfinder.com/developers/)
 
-    Take note of a weird glitch. I used facebook authentication when I signed into www.petfinder.com. If I log into www.petfinder.com and then navigate to www.petinder.com/developers then everything is great. If I open a new brower and go straight to www.petfinder.com/developers and try and sign using facebook I get an error.
+> Take note of a weird glitch. I used facebook authentication when I signed into www.petfinder.com. If I log into www.petfinder.com and then navigate to www.petinder.com/developers then everything is great. If I open a new brower and go straight to www.petfinder.com/developers and try and sign using facebook I get an error.
 
 Add the bottom of the page you should see a button that says "GET AN API KEY". Click that button.
 
