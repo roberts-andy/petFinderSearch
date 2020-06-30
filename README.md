@@ -82,13 +82,13 @@ Click on View Documentation.
 
 In the section "[Using the API](https://www.petfinder.com/developers/v2/docs/#using-the-api)" there is a section titled "Getting Authenticated." They give you the following code snippet. How helpful of them!
 
-    ```bash
+    ``` bash
     curl -d "grant_type=client_credentials&client_id={CLIENT-ID}&client_secret={CLIENT-SECRET}" https://api.petfinder.com/v2/oauth2/token
     ```
 
 Now look at the menu on the left and click on the entry that says "[Get Animals](https://www.petfinder.com/developers/v2/docs/#get-animals)"
 
-    ```bash 
+    ``` bash 
     GET https://api.petfinder.com/v2/animals
     ```
 
