@@ -43,7 +43,7 @@ Some things that I would like to keep in mind:
 
 I am going to be using C# for this app as I was trying to finish it in 1 night and C# is what I know best but the [Azure Function Runtime supports other languages as well.](https://docs.microsoft.com/en-us/azure/azure-functions/supported-languages)
 
-I am going to start with a 100% local development environment.
+I am going to start with a 100% local development environment (well, aside from the actual petfinder.com API).
 
 * [Visual Studio Code](https://code.visualstudio.com/Download)
 * [dotnet core SDK](https://dotnet.microsoft.com/download)
@@ -88,15 +88,15 @@ In the section "[Using the API](https://www.petfinder.com/developers/v2/docs/#us
 
 Now look at the menu on the left and click on the entry that says "[Get Animals](https://www.petfinder.com/developers/v2/docs/#get-animals)"
 
-``` bash 
+``` bash
     GET https://api.petfinder.com/v2/animals
 ```
 
-
+OK - you now have a developer account for www.petfinder.com!
 
 ### Explore the API
 
-OK, so at this point you have the pre-requisites installed. Before we create the and start plugging code in, let's take a quick look at the API and make sure that we understand it. For this I use Postman.
+OK, so at this point you have the pre-requisites installed. And you have created your developer account for petfinder.com. Before we create the project and start plugging in code, let's take a quick look at the API and make sure that we understand it. For this I use Postman.
 
 Launch the Postman app and sign in.
 
@@ -114,3 +114,22 @@ You should now see a pane in your postman app that looks like this:
 ![Image of empty collection in Postman](images/postman_empty_collection.PNG)
 
 Select the elipse button (the dot dot dot) and in the popup menu select "Add Request".
+
+I called my request "Get Token" because I am boring - call it what you will.
+
+Click the button that says "Save to \<your collection name>"
+
+In the left hand navication pane you should see something like:
+
+![Postman Collection](./images/postman_collection.png)
+
+Click on "GetToken" to modify the request.
+
+Some of you are advanced Postman users and are setting up variables and environments and all that. We are going to go simple here.
+
+You should see something like:
+![Postman Request GetToken](./images/postman_get_token.PNG)
+
+Where it says "Enter Request URL" enter "https://api.petfinder.com/v2/oauth2/token".
+
+Select the authorication tab on the request and enter your UserName and Password. Oh, what's this? You havent told me about username and password. In the username box enter the "API Key" that you colied in the previous section. Under password, enter te "Secret."
