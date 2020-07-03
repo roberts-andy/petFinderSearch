@@ -7,15 +7,15 @@ Solving a family dilema with serverless technologies!
 
 ## The Problem
 
-My family has reached a tipping point: our children are demanding an addition to the family. The 12 chickens that we have been keeping is not enough: my daughter "really, really, really, really, really, really, really, really" wants a dog. She actually does not want a dog. She wants 10,000 dogs, a cat, goats, sheep, cows, horses and a giraffe. She is 7. She can dream. She has pleaded, debated, build up solid arguments, and my wife and I have caved. We are searching for 1 dog.
+My family has reached a tipping point: our children are demanding an addition to the family. The 12 chickens that we have been keeping is not enough: my daughter "really, really, really, really, really, really, really, really" wants a dog. She actually does not want a dog. She wants 10,000 dogs, a cat, goats, sheep, cows, horses and a giraffe. She is 7. She can dream. She has pleaded, debated, built up solid arguments, and my wife and I have caved. We are searching for 1 dog.
 
-Here's the thing, it appears that many families are searching for dogs these days. Looking at breeder sites there is a huge backlog and increased prices with the current demand. Searching through petfinder by the time we see a new dog  pop into the list it is already gone.
+Here's the thing, it appears that many families are searching for dogs these days. Looking at breeder sites there is a huge backlog and increased prices with the current demand. Searching through petfinder by the time we see a new dog  pop into the list it is already gone. After finally talking to an adoption coordinator we learned that there were often 100+ applications for the dogs that we were putting out names in for. 
 
-I talked to my wife the other day and she mentioned that she can get alerted for new dogs but they only send the email out once a day so unless she is hitting refresh every 5 minutes she does not see the notification before it is too late. Hmmm... what if I could hit refresh every 5 minutes?
+I talked to my wife the other day about the process and she mentioned that she can get alerted for new dogs but they only send the email out once a day so unless she is hitting refresh every 5 minutes she does not see the notification before it is too late. Hmmm... what if I could hit refresh every 5 minutes automatically?
 
-We have been looking at petfinder.com as they hold the listings for the organizations that we have been working with. I realized that some of the organizations had a look and feel that was very similar to petfinder.com and a quick search showed that they have an [API](https://www.petfinder.com/developers/)that I could call.
+We have been looking at petfinder.com as they hold the listings for the organizations that we have been working with and a quick search showed that they have an [API](https://www.petfinder.com/developers/)that I could call.
 
-So here was my thought for a quick and dirty solution: write a logic app that runs every 5 minutes. From the app, call into the petfinder.com API and execute my search. If any dogs show up we have not seen yet then email those listings to us so we can take immediate action.
+So here was my thought for a quick and dirty solution: write a logic app that runs every 5 minutes. From the logic app, call an Azure Functionthat uses the petfinder.com API to execute my search. If any dogs show up we have not seen yet then email those listings to us so we can take immediate action.
 
 What I ended up with was something like this:
 ![Basic Solution Diagram](./images/diagram.png)
