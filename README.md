@@ -71,7 +71,7 @@ In Postman we will create a new "[Collection](https://learning.postman.com/docs/
 
 Find the "New" button - and click it.
 
-![Postman New Button](images/postman_new.PNG)
+![Postman New Button](images/postman_new.png)
 
 In the resulting dialog select "Collection".
 
@@ -95,7 +95,7 @@ Click on "GetToken" to modify the request.
 Some of you are advanced Postman users and are setting up variables and environments and all that. We are going to go simple here.
 
 You should see something like:
-![Postman Request GetToken](./images/postman_get_token.PNG)
+![Postman Request GetToken](./images/postman_get_token.png)
 
 Where it says "Enter Request URL" enter "https://api.petfinder.com/v2/oauth2/token". And select "POST" for the call's method.
 
@@ -119,7 +119,7 @@ In the authorization tab select "Bearer Token" and enter the value of the access
 
 In the "Params" tab you can enter your search parameters and they will create the URL query string.
 
-![animals api in postman](./images/postman_searchpets.PNG).
+![animals api in postman](./images/postman_searchpets.png).
 
 ## Let's Start With the Function App
 
