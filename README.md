@@ -415,7 +415,7 @@ Back in your entry point function:
                     //
                     // check to see if we have seen this pet before
                     //
-                    var query = petsClient.CreateDocumentQuery(collectionUri, $"select * from c where c.petId = '{pet.id}'").AsEnumerable();   
+                    var query = petsClient.CreateDocumentQuery(collectionUri, $"select * from c where c.petId = '{pet.id}'").AsEnumerable();
                     if(query.FirstOrDefault() != null)
                     {
                         //
@@ -495,7 +495,10 @@ You can visit that Cosmos DB Emulator page and mavigate to the data explorer tab
 
 ## Deploy the function to Azure
 
-Remember back when we created this function project using the Azure tab on the left hand side of VS Code? First, find the Azure logo ![Azure Logo](./images/azure_logo.png) and hover next to the word functions to pop up this set of buttons ![Function commands](./images/functions_deploy.png) and click the blue upward facing arrow. This will initiate the deploy to Function App wizard.
+Remember back when we created this function project using the Azure tab on the left hand side of VS Code? First, find the Azure logo
+![Azure Logo](./images/azure_logo.png)
+and hover next to the word functions to pop up this set of buttons
+![Function commands](./images/functions_deploy.png) and click the blue upward facing arrow. This will initiate the deploy to Function App wizard.
 
 You can also deploy through the command line, the Azure Portal, DevOps Pipeines, GitHub Acions, you cuold call REST APIs directly. I am using VS Code Wizard here for brevity. And then ruining my breity choice by explaining it.
 
@@ -533,3 +536,114 @@ Awesome! We have a function running in Azure. Next step, we can add a logic app 
 
 ## Add a New Logic App
 
+Add a new Logic App resource to your resource group. The settings for the Logic App are:
+
+| Setting | Value |
+| ------- | ----- |
+| Subscription | Your Subscription |
+| Resource Group | The Resource Group with your Function App |
+| Logic App Name | Globally Unique Name - I used andyrob-petfinder-logic |
+| Region or Integration Service Environment | We will use a regional deployment. ISE is a choice for dedicated capacity and isolated networking. |
+| Location | East US for me |
+| Log Analytics | Off unless you want to explore log analytics! |
+
+Open up your Logic App. We will use a template that executes our logic app on a timer trigger.
+![Recurrence Trigger Template](./images/logic_app_recurrence.png)
+
+I want this app to run every two minutes:
+![Recurrence Trigger](./iamges/../images/logic_recurrence.png)
+
+On the two minute mark I would like to call my function. Add a new step and select the HTTP action. Configure the request as a GET request to the Function URL that you copied earlier.
+
+![HTTP Action](./iamges/../images/logic_http.png)
+
+We want to iterate through the results of the search and send an email for each item.
+
+Add a new step. In the search box type "for each" and in the categories select "Control"
+
+![Choose For Each Action](./iomages/../images/logic_newaction_foreach.png)
+
+In the for each archion click int he text box "Select an output from previous steps". In the dynamic content window click "See More".
+
+![Foe Each Action see dynamic content](./images/logic_foreach_dynamic_content.png)
+
+Select "Body" which is the http result of the http action.
+
+For each result item we would like to send an email. Inside the "For Each" action click the "Add and Action" button. I am going to send an email using Office365. The same basic approach will work with other email services. In the "Add an Action" dialog search for "Office 365" and, select the "Office 365" category. In the list of actions in find "Send an Email (V2)".
+
+For now, in the to line, enter your email address. In the subject line look at the dynamic content dialog. Selct "Expression" from the top of the dialog and enter ``` concat('New Pet Found: ', item().name) ```
+
+The logic app has converted our Json response to an array of objects. item() returns the current item from our ofreach loop. And then we look for the 'name' property on that object.
+
+In the body of the message type "yipee". We will work on the body shortly.
+
+Test the app by clicking "Save" and then "Run" at the top of the logic app window.
+
+You should see a couple of emails come through with new pet results.
+
+Looking at my search results the image field is a URL to an email on the petfinder site. I would like to include these images in my email body which means I would like to send the message as HTML. The "Send Email V2" action will not automatically send an html message. If I type "```<H2>Yipee</H2>```" in the body I would get a big bold <H2>Yipee</H2> I will get and email with the text "```<H2>Yipee</H2>```". Now, I am not UI-guy but I don't think that's what I want.
+
+Oh, by the way, you are probably seeing a munch of emails come through as you are reading this. Id you close the logic app designer in the top right of the window, it will take you back to the logic app overview page. Click on "Disable" on the top of the page if you would like to mute the emails.
+
+This is a little odd, but if I create some dynamic HTML content and set the body of the email to the dynamic content the HTML content will render as you would expect. How will we define some dynamic HTML content? We can use variables within logic apps.
+
+Back above the for each loop look you should see a + sign that allows you to inject an action. Click the plus sign and select "Add an Action". Search for "Initialize Variable". Slect the "Initialize variable" action.
+
+| Name | Value |
+| ---- | ----- |
+| Name | emailBody |
+| Type | String |
+| Value | < blank > |
+
+![Initialize Variable](./images/logic_init_variable.png)
+
+Inside the For each Loop below the "Send an email" action hit the plus and add an action. Search for "Set Variable". Note that you receive a warning about setting the concurrency control for the loop.
+
+By default the for each loop will parallelize. The problem is that the logic app only has one instance of your emailBody variable so if we execute loop iterations in paarallel we will get some wonky behavior. Like 10 messages with the same body ... just guessing ... I never made that mistake myself! To change this behavior hit the elipses in the for each loop header and choose settings. In the settings dialog set the concurrency control to "on" and the degree of parallelism to 1. Then click done.
+
+![Logic App Concurrency Setting](./images/logic_loop_concurrency.png)
+
+If I was dealing with larger result sets maybe I would think of other way around this like a collection of email bodies. But for this app, serializing the process will be fine.
+
+Now, we put the "Set Variable" action below the "Send email" but we want to to run first. You can re-arrange the actions by dragging the Send Email" to below the Set Vaiable."
+
+My "Set Variable" action looks like this:
+![Set Email Body](./images/logic_set_email_body.png)
+
+Each of the elements of dynamic content is an expression such as ```item().name``` or ```item().primaryBreed```. The dynamic content icons may look different for you. When you save and re-open the icons will change to match what you see here.
+
+Now, the whole reason we wanted to add HTML content was to get the images but we dont have images yet.
+
+In between the "Set Variable" action and the "Send Email" action add another for each loop. The loop collection will be the expression ```ite().photos```.
+
+Add an action to this inner loop "Append to String Variable". Variable name is "emailBody" and value is "\<img src= '@{item()}'/>". Note that you can just paste this text into the value and it will automatically convert the epression to dynamic content.
+
+Youe main forach loop should now look like:
+![For each loop with variables](./images/logic_foreach.png)
+
+Lastly, we set the email body to our variable.
+
+The final logic app looks like this: 
+![Logc App 1](./images/logic_final_1.png)
+![Logc App 2](./images/logic_final_2.png)
+![Logc App 3](./images/logic_final_3.png)
+
+## Conclusion
+
+So there you have it. You have a logic app that runs every couple minuets and calls your function app. The function app calls the petfinder API and tracks results in a cosmos db database.
+
+So what happened? 1 day into running the app my wife was able to get inquiries into agencies much more quickly. 2 days after the app went live we had some solid leads and 3 days after we went live we brought home a 2 year old lab/terrier mix.
+
+I wanted to call her hack-hound or Azure Mutt but I was overridden as my kids had no idea what I was talking about -- they will learn. So Lucky it is.
+
+![Lucky](./images/lucky.jpg)
+
+Even in this simple app there are a ton of areas left to explore:
+
+1) I mentioned Azure Keyvault for secret storage
+2) Right now my wife needs to craft an emil to respond to a dog. What if she could have just clicked on an approval button to send an email saying she was interested?
+3) Add the logic app to my solution. Right now it is just manually created in the azure portal but all of that is scriptable.
+4) Automatic deployments? Github actions for example would allow us to publish the function and logic apps when code changes.
+5) A better picture of Lucky. I mean really, that's what it's all about, right?
+
+I hope you enjoyed this article and maybe learned a couple of things. I welcome any and all feedback. Feel free to fork this repo and try something on your own. If you have an interesting twist or some new functionality that you would like to share I could look at integrating or if you are public I can link to your repo.
