@@ -361,7 +361,7 @@ We will also need to add three settings to our local.setting.json file. You can 
 Back in your entry point function:
 
 ``` cs
-        [FunctionName("petFinderSearchHttp")]
+        [FunctionName("SearchForNewPets")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             [CosmosDB(
@@ -376,78 +376,91 @@ Back in your entry point function:
                 IAsyncCollector<dynamic> petsOut,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
-            //
-            // Get my bearer token and execute search against petfinder api
-            //
-            string token = await GetToken(log);
-            string searchResult = await ExecuteSearch(token, log);
-
-            //
-            // convert search result to collection of dynamic objects
-            //
-            dynamic pets = JsonConvert.DeserializeObject(searchResult);
-
-            //
-            // Get a reference to my cosmosdb document collection
-            //
-            Uri collectionUri = UriFactory.CreateDocumentCollectionUri("petfinder", "pets");
-
-            //
-            // list to keep track of new pets
-            //
-            List<dynamic> newPets = new List<dynamic>();
-
-            //
-            // for each pet in the search results
-            //
-            foreach (dynamic pet in pets.animals)
+            try
             {
-                log.LogInformation($"{pet.id}:{pet.name}");
+
+                string dbName = System.Environment.GetEnvironmentVariable("DbName");
+                string collName = System.Environment.GetEnvironmentVariable("CollName");
+
+                log.LogInformation("C# HTTP trigger function processed a request.");
 
                 //
-                // check to see if we have seen this pet before
+                // Get my bearer token and execute search against petfinder api
                 //
-                var query = petsClient.CreateDocumentQuery(collectionUri, $"select * from c where c.petId = '{pet.id}'").AsEnumerable();
-                if(query.FirstOrDefault() != null)
-                {
-                    //
-                    // we've already seen this one.. move on
-                    //
-                    log.LogInformation("Pet Found");
-                }
-                else
-                {
-                    //
-                    // we have not seen this pet -- add it to cosmosdb and the collection that we will return to the caller
-                    //
-                    log.LogInformation("Adding Pet");
-                    dynamic newPet = new System.Dynamic.ExpandoObject();
-                    newPet.id = pet.id.ToString();
-                    newPet.petId = pet.id.ToString();
-                    newPet.name = pet.name;
-                    newPet.description = pet.description;
-                    newPet.primaryBreed = pet.breeds.primary;
-                    newPet.secondaryBreed = pet.breeds.secondary;
-                    newPet.url = pet.url;
+                string token = await GetToken(log);
+                string searchResult = await ExecuteSearch(token, log);
 
-                    var photos = new List<dynamic>();
-                    foreach(var photo in pet.photos)
+                //
+                // convert search result to collection of dynamic objects
+                //
+                dynamic pets = JsonConvert.DeserializeObject(searchResult);
+
+                //
+                // Get a reference to my cosmosdb document collection
+                //
+                Uri collectionUri = UriFactory.CreateDocumentCollectionUri(dbName, collName);
+
+                //
+                // list to keep track of new pets
+                //
+                List<dynamic> newPets = new List<dynamic>();
+
+                //
+                // for each pet in the search results
+                //
+                foreach (dynamic pet in pets.animals)
+                {
+                    log.LogInformation($"{pet.id}:{pet.name}");
+
+                    //
+                    // check to see if we have seen this pet before
+                    //
+                    var query = petsClient.CreateDocumentQuery(collectionUri, $"select * from c where c.petId = '{pet.id}'").AsEnumerable();   
+                    if(query.FirstOrDefault() != null)
                     {
-                        photos.Add(photo.full);
+                        //
+                        // we've already seen this one.. move on
+                        //
+                        log.LogInformation("Pet Found");
+                    }
+                    else
+                    {
+                        //
+                        // we have not seen this pet -- add it to cosmosdb and the collection that we will return to the caller
+                        //
+                        log.LogInformation("Adding Pet");
+                        dynamic newPet = new System.Dynamic.ExpandoObject();
+                        newPet.id = pet.id.ToString();
+                        newPet.petId = pet.id.ToString();
+                        newPet.name = pet.name;
+                        newPet.description = pet.description;
+                        newPet.primaryBreed = pet.breeds.primary;
+                        newPet.secondaryBreed = pet.breeds.secondary;
+                        newPet.url = pet.url;
+
+                        var photos = new List<dynamic>();
+                        foreach(var photo in pet.photos)
+                        {
+                            photos.Add(photo.full);
+                        }
+
+                        newPet.photos = photos;
+
+                        await petsOut.AddAsync(newPet);
+                        newPets.Add(newPet);
                     }
 
-                    newPet.photos = photos;
-
-                    await petsOut.AddAsync(newPet);
-                    newPets.Add(newPet);
                 }
 
+                // return the list of new pets
+                return new OkObjectResult(newPets);
             }
-
-            // return the list of new pets
-            return new OkObjectResult(newPets);
+            catch(Exception e)
+            {
+                log.LogError(e.Message);
+                log.LogError(e.ToString());
+                return new BadRequestObjectResult(e.ToString());
+            }
         }
 ```
 
@@ -481,4 +494,42 @@ So that's the function, test it out. You can also very the search parsmeters in 
 You can visit that Cosmos DB Emulator page and mavigate to the data explorer tab to look at the data that you are writing to the database.
 
 ## Deploy the function to Azure
+
+Remember back when we created this function project using the Azure tab on the left hand side of VS Code? First, find the Azure logo ![Azure Logo](./images/azure_logo.png) and hover next to the word functions to pop up this set of buttons ![Function commands](./images/functions_deploy.png) and click the blue upward facing arrow. This will initiate the deploy to Function App wizard.
+
+You can also deploy through the command line, the Azure Portal, DevOps Pipeines, GitHub Acions, you cuold call REST APIs directly. I am using VS Code Wizard here for brevity. And then ruining my breity choice by explaining it.
+
+The Wizard Stetps are:
+
+* Select a Subscription - pick a subscription that you have access to. You will need access to create a resource group and deploy resources to that group.
+* You can deploy to an existing app or create a new one. We will create a new one. Select "+ Create new Function App in Azure..." (I did not choose the advanced option. It gives you a litle more control).
+* Function App Name. This needs to be a globally unique name. I often prefix my globally unique names with andyrob. In this case I chose andyrob-petfinder-func
+* Location - choose a location. I choose East US because I am an East coast kind of guy but hey, you do you.
+
+This'll take a couple of minutes. Take a bio break, get up and stretch, check some email.
+
+Now navigate to the [Azure Portal](https://portal.azure.com) and find the resource group you just created. We still need to create our CosmosDb account and add our app settings.
+
+If you used the simple wizard like I did, the resource group will be the name of the function app with any special characters removed. In my case, this is andyrobpetfinderfunc.
+
+I am not going to add a step by step process to create a cosmosdb account but here is some documentation:
+[Add a Cosmos Db Account](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account) - ALso, a good idea select the same region you chose for the function app. Your code will execute even if CosmosDb is on the other side of the world, but why make everyone work so hard. You can use the free tier here as long as you do not have another free tier cosmos db account in your subscription.
+
+[Create a Continer](https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-create-container). You should select the SQL API. Well, at least if you want your code to execute. You can use the minimum throughout setting 400 RUs and use the same names, partitioning keys, etc as we did for the local Cosmos DB database.
+
+To the left of the data exploter look for the "Settings" section and click on "Keys". Copy the "Primary Connection String" and save for later.
+
+Head back to your resource group and click on your "App Service". This is your function app. Under the "Setting" section on the left select "Configuration".
+
+We will need to add 7 application settings. You can do this with the "+ Application Setting" button at the top of the configutation page. The settings we will add are: LogonUri, ApiKey, searchri, searchQuery, CosmosDbConnection, DbName, CollName. All of these values will be the same as your local settings except for the CosmosDbConnection which should contain the value that you just copied from your Azure Cosmos Db.
+
+Make sure to click "Save" at the top of the page before you leave this screen!
+
+Under the "Functions" section on the left click "Functions". Click on your "SearchForNewPets" function. Click on "Get Function Url" at the top of the page, copy the results and save for later.
+
+If you click on "Code and Test" you can execute the function and connect to the logstream to see the information that we were logging.
+
+Awesome! We have a function running in Azure. Next step, we can add a logic app to call this function on a timer and email the results.
+
+## Add a New Logic App
 
