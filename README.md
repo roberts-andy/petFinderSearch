@@ -5,6 +5,8 @@ Solving a family dilema with serverless technologies!
 
 ![dog](./images/azuredog.png)
 
+** Note: the code in here works but the article is still very much in draft form. ** 
+
 ## The Problem
 
 My family has reached a tipping point: our children are demanding an addition to the family. The 12 chickens that we have been keeping is not enough: my daughter "really, really, really, really, really, really, really, really" wants a dog. She actually does not want a dog. She wants 10,000 dogs, a cat, goats, sheep, cows, horses and a giraffe. She is 7. She can dream. She has pleaded, debated, build up solid arguments - my wife and I have caved. We are getting a dog... 1 dog.
