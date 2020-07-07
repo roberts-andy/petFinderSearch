@@ -18,6 +18,7 @@ We have been looking at petfinder.com as they hold the listings for the organiza
 So here was my thought for a quick and dirty solution: write a logic app that runs every 5 minutes. From the logic app, call an Azure Function that uses the petfinder.com API to execute my search. If any dogs show up we have not seen yet then email those listings to us so we can take immediate action.
 
 What I ended up with was something like this:
+
 ![Basic Solution Diagram](./images/diagram.png)
 
 ## Create your petfinder.com Developer Account
