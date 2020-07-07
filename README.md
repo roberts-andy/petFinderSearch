@@ -79,7 +79,7 @@ In the resulting dialog select "Collection".
 In the "Create a New Collection" dialog enter a name for the collection (I used "petfinder api" but you can be a creative or mundane as you please) and click "Create".
 
 You should now see a pane in your postman app that looks like this:
-![Image of empty collection in Postman](images/postman_empty_collection.PNG)
+![Image of empty collection in Postman](images/postman_empty_collection.png)
 
 Select the elipse button (the dot dot dot) and in the popup menu select "Add Request".
 
