@@ -1,27 +1,24 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
-using System.Net;
-using HtmlAgilityPack;
-using System.Collections;
-using System.Collections.Generic;
 using RestSharp;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
-using System.Linq;
 
 
-namespace Company.Function
+namespace PetFinderSearch
 {
-    public static class petFinderSearchHttp
+    public static class SearchForNewPets
     {
-        [FunctionName("petFinderSearchHttp")]
+        [FunctionName("SearchForNewPets")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             [CosmosDB(
@@ -38,24 +35,50 @@ namespace Company.Function
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            string token = GetToken(log);
-            string res = ExecuteSearch(token, log);
+            //
+            // Get my bearer token and execute search against petfinder api
+            //
+            string token = await GetToken(log);
+            string searchResult = await ExecuteSearch(token, log);
 
-            dynamic pets = JsonConvert.DeserializeObject(res);
+            //
+            // convert search result to collection of dynamic objects
+            //
+            dynamic pets = JsonConvert.DeserializeObject(searchResult);
+
+            //
+            // Get a reference to my cosmosdb document collection
+            //
             Uri collectionUri = UriFactory.CreateDocumentCollectionUri("petfinder", "pets");
+
+            //
+            // list to keep track of new pets
+            //
             List<dynamic> newPets = new List<dynamic>();
+
+            //
+            // for each pet in the search results
+            //
             foreach (dynamic pet in pets.animals)
             {
-
-
                 log.LogInformation($"{pet.id}:{pet.name}");
+
+                //
+                // check to see if we have seen this pet before
+                //
                 var query = petsClient.CreateDocumentQuery(collectionUri, $"select * from c where c.petId = '{pet.id}'").AsEnumerable();   
                 if(query.FirstOrDefault() != null)
                 {
+                    //
+                    // we've already seen this one.. move on
+                    //
                     log.LogInformation("Pet Found");
                 }
                 else
                 {
+                    //
+                    // we have not seen this pet -- add it to cosmosdb and the collection that we will return to the caller
+                    //
                     log.LogInformation("Adding Pet");
                     dynamic newPet = new System.Dynamic.ExpandoObject();
                     newPet.id = pet.id.ToString();
@@ -76,35 +99,34 @@ namespace Company.Function
 
                     await petsOut.AddAsync(newPet);
                     newPets.Add(newPet);
-                    // await petsOut.AddAsync(JsonConvert.SerializeObject(newPet).Replace("\"","'")    );
-
                 }
 
             }
 
+            // return the list of new pets
             return new OkObjectResult(newPets);
         }
 
-        private static string GetToken(ILogger log)
+        private static async Task<string> GetToken(ILogger log)
         {
             log.LogInformation("Getting Token");
-            string logonUri = Environment.GetEnvironmentVariable("logonUri");
+            string logonUri = Environment.GetEnvironmentVariable("LogonUri");
+            string apiKey = Environment.GetEnvironmentVariable("ApiKey");
             var client = new RestClient(logonUri);
             client.Timeout = -1;
             var request = new RestRequest(Method.POST);
-            request.AddHeader("Authorization", "Basic TXdZUTRma1Y3QzlvMmh5R1Q5emlvdTBSZFJ0TUV4cWlBYUpXbVJSdWVVd2JTYkFWTDc6TzZsQldrNUxqbndBckRRV083WjZBSjRCWlhwTzluZTFiQ1Q3VG1aRA==");
+            request.AddHeader("Authorization", $"Basic {apiKey}");
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             request.AddParameter("grant_type", "client_credentials");
-            IRestResponse response = client.Execute(request);
+            IRestResponse response = await client.ExecuteAsync(request);
 
             dynamic responseObj = JsonConvert.DeserializeObject(response.Content);
             //Console.WriteLine(response.Content);
             log.LogInformation("Token Generated");
             return responseObj.access_token;
-
         }
 
-        private static string ExecuteSearch(string token, ILogger log)
+        private static async Task<string> ExecuteSearch(string token, ILogger log)
         {
             log.LogInformation("Executing Search");
             string searchUri = Environment.GetEnvironmentVariable("searchUri");
@@ -114,7 +136,7 @@ namespace Company.Function
             client.Timeout = -1;
             var request = new RestRequest(Method.GET);
             request.AddHeader("Authorization", $"Bearer {token}");
-            IRestResponse response = client.Execute(request);
+            IRestResponse response = await client.ExecuteAsync(request);
             //Console.WriteLine(response.Content);
             log.LogInformation("Serach Complete");
             return response.Content;
