@@ -1,6 +1,8 @@
 
 --
+
 ** Note: the code in here works but the article is still very much in draft form. ** 
+
 --
 
 # Looking for a Dog
