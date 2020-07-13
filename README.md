@@ -1,5 +1,5 @@
 
-# Looking for a Dog
+# Hacking for a Dog
 
 Solving a family dilema with serverless technologies!
 
@@ -7,9 +7,9 @@ Solving a family dilema with serverless technologies!
 
 ## The Problem
 
-My family has reached a tipping point: our children are demanding an addition to the family. The 12 chickens that we have been keeping is not enough: my daughter "really, really, really, really, really, really, really, really" wants a dog. She actually does not want a dog. She wants 10,000 dogs, a cat, goats, sheep, cows, horses and a giraffe. She is 7. She can dream. She has pleaded, debated, build up solid arguments - my wife and I have caved. We are getting a dog... 1 dog.
+My family has reached a tipping point: our children are demanding an addition to the family. The 12 chickens that we have been keeping is not enough: my daughter "really, really, really, really, really, really, really, really" wants a dog. She actually does not want a dog. She wants 10,000 dogs, a cat, goats, sheep, cows, horses and a giraffe. She is 7. She can dream. She has pleaded, debated, built up solid arguments - my wife and I have caved. We are getting a dog... 1 dog.
 
-Here's the thing, it appears that many families are searching for dogs these days. Looking at breeder sites there is a huge backlog and increased prices with the current demand. Searching through petfinder by the time we see a new dog  pop into the list it is already gone. After finally talking to an adoption coordinator we learned that there were often 100+ applications for the dogs that we were putting out names in for.
+Here's the thing, it appears that many families are searching for dogs these days. Looking at breeder sites there is a huge backlog and increased prices with the current demand. When searching through petfinder, by the time we see a new dog pop into the list it is already gone. After finally talking to an adoption coordinator we learned that there were often 100+ applications for the dogs that we were putting out names in for.
 
 I talked to my wife the other day about the process and she mentioned that she can get alerted for new dogs but she only receives the email once a day. Unless she is hitting refresh every 5 minutes she does not see the notification before it is too late. Hmmm... what if I could hit refresh every 5 minutes automatically?
 
@@ -24,7 +24,7 @@ What I ended up with was something like this:
 
 The first thing that I did was take a look at the petfinder.com API. The petfinder.com developer account is tied to your user petfinder user account so you will first need to create one of those. Open a browser and navigate to [www.petfinder.com](www.petfinder.com) and either log in or create a new account.
 
-Once your account is created navigate  to [www.petfinder.com/developers](https://www.petfinder.com/developers/)
+Once your account is created navigate to [www.petfinder.com/developers](https://www.petfinder.com/developers/)
 
 > Take note of a weird glitch. I used facebook authentication when I signed into www.petfinder.com. If I log into www.petfinder.com and then navigate to www.petinder.com/developers then everything is great. If I open a new brower and go straight to www.petfinder.com/developers and try and sign using facebook I get an error.
 
@@ -39,7 +39,7 @@ At the bottom of the page you should see a button that says "GET AN API KEY". Cl
 | PAssword | You know what to do |
 | "GET A KEY" | Click it |
 
-You should see a message that says "API Access Granted" if it does not, re-evaluate your life's choices.
+You should see a message that says "API Access Granted".
 
 Copy the API Key and Secret and paste them into your favorite text editor - you know, notepad.
 
@@ -61,7 +61,7 @@ OK - you now have a developer account for www.petfinder.com!
 
 ## Explore the API
 
-At this point you have the pre-requisites installed. And you have created your developer account for petfinder.com. Before we create the project and start plugging in code, let's take a quick look at the API and make sure that we understand it. For this I use Postman.
+With your developer account created, and a couple of API calls identified, letr's explore the petfinder API with Postman.
 
 * [Postman](https://www.postman.com/downloads/)
 
@@ -138,7 +138,7 @@ Here is my basic process:
 
 Some things that I would like to keep in mind:
 
-* This function will only be called once every few minutes. The API account allowed me to make 1000 calls per day.There are 1,440 minutes in a day. So I will run the function once every 2 minutes. While I would like it to run "quickly" I am not concerned with eeking out every ounce of performnce.
+* This function will only be called once every few minutes. The API account allowed me to make 1000 calls per day.There are 1,440 minutes in a day. So I will run the function once every 2 minutes. While I would like it to run "quickly" I am not concerned with eeking out every ounce of performnce. The technologies that we will use are extremely scalable and capable of high throughput -- but I am not going to spent a ton of time optimizing them or testing for that here.
 * We may want to change the search criteria from time to time. I would like to do this without pushing new code.
 * I may want to make some changes and test without affecting the running app. Keep your user base in mind - my user base is my wife: thouh shalt not crash your wife's app.
 
@@ -175,7 +175,7 @@ I generally have a projects directory on my C:\ drive and start with the command
 
 This will launch VS Code and open the current directory.
 
-On the left of your screen you should see an icon for Azure. When you click that you should see navigation panes various Azure extensions thaty you have installed. One of those will be Azure Functions.
+On the left of your screen you should see an icon for Azure. When you click that you should see navigation panes various Azure extensions that you have installed in VS Code. One of those extensions will be Azure Functions.
 
 When you look in the Azure Functions list you will see the list of Azure Subscriptions that you have access to.
 
@@ -211,7 +211,7 @@ Let's take a look at some of the attributes in this function's header:
       ILogger log)
 ```
 
-Typically C# function with a couple of new attributes that the function runtime uses to understand how this function should operate within the context of the function runtime. These "bindings" dictate how the function will be triggered (trigger bindings), what data sources the function will read from (input bindings) and write to (output bindings).
+Typical C# function with a couple of new attributes that the function runtime uses to understand how this function should operate within the context of the function runtime. These "bindings" dictate how the function will be triggered (trigger bindings), what data sources the function will read from (input bindings) and write to (output bindings).
 
 In this case we have an HttpTrigger binding. When the runtime sees an http get or post request at the URL designated for this function, the function code will be executed. Information about the http request will be available to the function in the parameter that is annotated with this httpTrigger attribute.
 
@@ -229,7 +229,7 @@ Back in Postman, navigate to your GetToken call. Under the send button you will 
    2) Tyep Nuget and select "Nuget Package Manager: Add Package"
    3) Type "RestSharp for the package name and select RestSharp from the resulting list.
    4) Select a version. I chose "106.11.4"
-3) Add the following code - basically the code from Postman. The only real changes are that I added the logging information and moved the loginUri and apiKey to environment variables and used the Async verison of Execute to execute the request asynchrnousky.
+3) Add the following code - basically the code from Postman. The only real changes are that I added the logging information and moved the loginUri and apiKey to environment variables and used the Async verison of Execute to execute the request asynchronously.
 
 ``` cs
         private static async Task<string> GetToken(ILogger log)
@@ -298,7 +298,7 @@ Again, pretty much the same code that Postman gave me. I like it when others wri
     "AzureWebJobsStorage": "",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "LogonUri": "https://api.petfinder.com/v2/oauth2/token",
-    "ApiKey": "TXdZUTRma1Y3QzlvMmh5R1Q5emlvdTBSZFJ0TUV4cWlBYUpXbVJSdWVVd2JTYkFWTDc6TzZsQldrNUxqbndBckRRV083WjZBSjRCWlhwTzluZTFiQ1Q3VG1aRA==",
+    "ApiKey": "<PetFinder API Key>",
     "searchUri": "https://api.petfinder.com/v2/animals",
     "searchQuery": "?type=dog&size=small,medium&age=baby,young&coat=short,medium&good_with_children=true&sort=recent"
   }
@@ -331,7 +331,13 @@ So this is great so far, but I only want to see results that I have not yet seen
 
 ## Configuring Your Local CosmosDb Environment
 
-Remember that CosmosDb Emulator that you installed in the pre-requisites? In your start menu search for Cosmos, select "Azure Cosmos DB Emulator" and open it. After a few moments you will see a notification that the emulator has started, and a web page will pop up with the Azure Cosmos DB Emulator and data explorer web page. On the left hand side of the page open the Explorer tab and click "New Container".
+Remember the CosmosDb Emulator that you installed in the pre-requisites? In your start menu search for Cosmos, select "Azure Cosmos DB Emulator" and open it. After a few moments you will see a notification that the emulator has started. If you miss the notification you can get back to the emulator in the systray:
+![CosmosDb in Systray](./images/localcosmos_systray.png)
+
+A web page will pop up with the Azure Cosmos DB Emulator and data explorer web page.
+![CosmosDb Emulator Page](./images/localcosmos_emulator.png)
+
+On the left hand side of the page open the Explorer tab and click "New Container".
 
 | Parameter | Value |
 |-----------|-------|
@@ -341,11 +347,13 @@ Remember that CosmosDb Emulator that you installed in the pre-requisites? In you
 | Ccontainer id | pets |
 | Partition key |  /petId |
 
+![CosmosDb New Container](./images/localcosmos_newcontainer.png)
+
 Now we have to tell our function how we want to interact with this database.
 
 ## Add Database Connectivity to Your Function
 
-Follow the steps to add a NuGet package for
+Follow the steps to add a NuGet package (like you did for RestSharp earlier) and add:
 
 * Newtonsoft.Json
 * Microsoft.Azure.WebJobs.Extensions.CosmosDB
@@ -358,7 +366,7 @@ We will also need to add three settings to our local.setting.json file. You can 
     "CollName": "pets"
 ```
 
-Back in your entry point function:
+Back in your entry point function. This is my new version of the function:
 
 ``` cs
         [FunctionName("SearchForNewPets")]
@@ -489,18 +497,23 @@ The rest of the function is not really function specific, its just C#. Granted, 
 
 I am handling no errors... but my customers here are me and my wife. If not handling an error when calling the petfinder api or adding a document to a collection is the thing that get's me in trouble I think I am having a pretty good day!
 
-So that's the function, test it out. You can also very the search parsmeters in your settings file and try some different search fields. They are documented in the petfinder api documentation.
+So that's the function, test it out. You can also vary the search parsmeters in your settings file and try some different search fields. They are documented in the petfinder api documentation.
 
 You can visit that Cosmos DB Emulator page and mavigate to the data explorer tab to look at the data that you are writing to the database.
 
 ## Deploy the function to Azure
 
 Remember back when we created this function project using the Azure tab on the left hand side of VS Code? First, find the Azure logo
-![Azure Logo](./images/azure_logo.png)
-and hover next to the word functions to pop up this set of buttons
-![Function commands](./images/functions_deploy.png) and click the blue upward facing arrow. This will initiate the deploy to Function App wizard.
 
-You can also deploy through the command line, the Azure Portal, DevOps Pipeines, GitHub Acions, you cuold call REST APIs directly. I am using VS Code Wizard here for brevity. And then ruining my breity choice by explaining it.
+![Azure Logo](./images/azure_logo.png)
+
+and hover next to the word functions to pop up this set of buttons
+
+![Function commands](./images/functions_deploy.png)
+
+and click the blue upward facing arrow. This will initiate the deploy to Function App wizard.
+
+You can also deploy through the command line, the Azure Portal, DevOps Pipeines, GitHub Acions, you cuold call REST APIs directly. I am using VS Code Wizard here for brevity. And then ruining my brevity choice by explaining why i chose it.
 
 The Wizard Stetps are:
 
@@ -565,7 +578,7 @@ Add a new step. In the search box type "for each" and in the categories select "
 
 In the for each archion click int he text box "Select an output from previous steps". In the dynamic content window click "See More".
 
-![Foe Each Action see dynamic content](./images/logic_foreach_dynamic_content.png)
+![For Each Action see dynamic content](./images/logic_foreach_dynamic_content.png)
 
 Select "Body" which is the http result of the http action.
 
@@ -573,7 +586,7 @@ For each result item we would like to send an email. Inside the "For Each" actio
 
 For now, in the to line, enter your email address. In the subject line look at the dynamic content dialog. Selct "Expression" from the top of the dialog and enter ``` concat('New Pet Found: ', item().name) ```
 
-The logic app has converted our Json response to an array of objects. item() returns the current item from our ofreach loop. And then we look for the 'name' property on that object.
+The logic app has converted our Json response to an array of objects. item() returns the current item from our foreach loop. And then we look for the 'name' property on that object.
 
 In the body of the message type "yipee". We will work on the body shortly.
 
@@ -581,7 +594,7 @@ Test the app by clicking "Save" and then "Run" at the top of the logic app windo
 
 You should see a couple of emails come through with new pet results.
 
-Looking at my search results the image field is a URL to an email on the petfinder site. I would like to include these images in my email body which means I would like to send the message as HTML. The "Send Email V2" action will not automatically send an html message. If I type "```<H2>Yipee</H2>```" in the body I would get a big bold <H2>Yipee</H2> I will get and email with the text "```<H2>Yipee</H2>```". Now, I am not UI-guy but I don't think that's what I want.
+What would we like to put in the email body? Looking at my search results the image field is a URL to a URL on the petfinder site. I would like to include these images in my email body which means I would like to send the message as HTML. The "Send Email V2" action will not automatically send an html message. If I type "```<H2>Yipee</H2>```" in the body I would get the big bold text "```<H2>Yipee</H2>```". Now, I am not UI-guy but I don't think that's what I want.
 
 Oh, by the way, you are probably seeing a munch of emails come through as you are reading this. Id you close the logic app designer in the top right of the window, it will take you back to the logic app overview page. Click on "Disable" on the top of the page if you would like to mute the emails.
 
@@ -599,7 +612,7 @@ Back above the for each loop look you should see a + sign that allows you to inj
 
 Inside the For each Loop below the "Send an email" action hit the plus and add an action. Search for "Set Variable". Note that you receive a warning about setting the concurrency control for the loop.
 
-By default the for each loop will parallelize. The problem is that the logic app only has one instance of your emailBody variable so if we execute loop iterations in paarallel we will get some wonky behavior. Like 10 messages with the same body ... just guessing ... I never made that mistake myself! To change this behavior hit the elipses in the for each loop header and choose settings. In the settings dialog set the concurrency control to "on" and the degree of parallelism to 1. Then click done.
+By default the for each loop will parallelize. The problem is that the logic app only has one instance of your emailBody variable so if we execute loop iterations in paarallel we will get some wonky behavior. Like 10 messages with the same body ... um, I am just guessing of course, I would never have made that mistake myself! To change this behavior hit the elipses in the for each loop header and choose settings. In the settings dialog set the concurrency control to "on" and the degree of parallelism to 1. Then click done.
 
 ![Logic App Concurrency Setting](./images/logic_loop_concurrency.png)
 
@@ -614,7 +627,7 @@ Each of the elements of dynamic content is an expression such as ```item().name`
 
 Now, the whole reason we wanted to add HTML content was to get the images but we dont have images yet.
 
-In between the "Set Variable" action and the "Send Email" action add another for each loop. The loop collection will be the expression ```ite().photos```.
+In between the "Set Variable" action and the "Send Email" action add another for each loop. The loop collection will be the expression ```item().photos```.
 
 Add an action to this inner loop "Append to String Variable". Variable name is "emailBody" and value is "\<img src= '@{item()}'/>". Note that you can just paste this text into the value and it will automatically convert the epression to dynamic content.
 
@@ -623,18 +636,18 @@ Youe main forach loop should now look like:
 
 Lastly, we set the email body to our variable.
 
-The final logic app looks like this: 
+The final logic app looks like this:
 ![Logc App 1](./images/logic_final_1.png)
 ![Logc App 2](./images/logic_final_2.png)
 ![Logc App 3](./images/logic_final_3.png)
 
 ## Conclusion
 
-So there you have it. You have a logic app that runs every couple minuets and calls your function app. The function app calls the petfinder API and tracks results in a cosmos db database.
+So there you have it. You have a logic app that runs every couple minuets and calls your function app. The function app calls the petfinder API and tracks results in a cosmos db database. I was able to complete the basic application in one night, in fact, it has taken me far longer to write this article than it did do code the process.
 
 So what happened? 1 day into running the app my wife was able to get inquiries into agencies much more quickly. 2 days after the app went live we had some solid leads and 3 days after we went live we brought home a 2 year old lab/terrier mix.
 
-I wanted to call her hack-hound or Azure Mutt but I was overridden as my kids had no idea what I was talking about -- they will learn. So Lucky it is.
+I wanted to call her hack-hound or Azure Mutt but I was overridden as my kids had no idea what I was talking about -- they will learn. So Lucky it is. (And yes, I know I need a better picture here. I am working on it.)
 
 ![Lucky](./images/lucky.jpg)
 
