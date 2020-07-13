@@ -13,11 +13,12 @@ Here's the thing, it appears that many families are searching for dogs these day
 
 I talked to my wife the other day about the process and she mentioned that she can get alerted for new dogs but she only receives the email once a day. Unless she is hitting refresh every 5 minutes she does not see the notification before it is too late. Hmmm... what if I could hit refresh every 5 minutes automatically?
 
-We have been looking at petfinder.com as they hold the listings for the organizations that we have been working with and a quick search showed that they have an [API](https://www.petfinder.com/developers/)that I could call.
+We have been looking at petfinder.com as they hold the listings for the organizations that we have been working with and a quick search showed that they have an [API](https://www.petfinder.com/developers/) that I could call.
 
 So here was my thought for a quick and dirty solution: write a logic app that runs every 5 minutes. From the logic app, call an Azure Function that uses the petfinder.com API to execute my search. If any dogs show up we have not seen yet then email those listings to us so we can take immediate action.
 
 What I ended up with was something like this:
+
 ![Basic Solution Diagram](./images/diagram.png)
 
 ## Create your petfinder.com Developer Account
@@ -78,7 +79,7 @@ In the resulting dialog select "Collection".
 In the "Create a New Collection" dialog enter a name for the collection (I used "petfinder api" but you can be a creative or mundane as you please) and click "Create".
 
 You should now see a pane in your postman app that looks like this:
-![Image of empty collection in Postman](images/postman_empty_collection.PNG)
+![Image of empty collection in Postman](images/postman_empty_collection.png)
 
 Select the elipse button (the dot dot dot) and in the popup menu select "Add Request".
 
@@ -99,11 +100,11 @@ You should see something like:
 
 Where it says "Enter Request URL" enter "https://api.petfinder.com/v2/oauth2/token". And select "POST" for the call's method.
 
-Select the Authorization Tab on the request and enter your UserName and Password. Oh, what's this? You havent told me about username and password. In the username box enter the "API Key" that you colied in the previous section (the one that you securely stashed away in notepad). Under password, enter the "Secret."
+Select the Authorization Tab on the request and enter your UserName and Password. Oh, what's this? You havent told me about username and password. In the username box enter the "API Key" that you copied in the previous section (the one that you securely stashed away in notepad). Under password, enter the "Secret."
 
 ![GetToken API - Authorization](./images/get_token_auth.png)
 
-The final part of this call species that we need are looking for client credentials. We will do that by passing this information in the body of the call. Select the "Body" tab and the option "x-www-form-urlencoded" and enter a key value pair: "grant-type" and "client_credentials".
+The final part of this call specifies that we need are looking for client credentials. We will do that by passing this information in the body of the call. Select the "Body" tab and the option "x-www-form-urlencoded" and enter a key value pair: "grant-type" and "client_credentials".
 
 With this information entered, click "Send" and you will see your token the response body.
 
@@ -120,6 +121,8 @@ In the authorization tab select "Bearer Token" and enter the value of the access
 In the "Params" tab you can enter your search parameters and they will create the URL query string.
 
 ![animals api in postman](./images/postman_searchpets.png).
+
+Now that we understand what it is we will be calling, let's talk about how we'll call it.
 
 ## Let's Start With the Function App
 
@@ -169,7 +172,7 @@ I generally have a projects directory on my C:\ drive and start with the command
 > cd C:\projects
 > mkdir petfinderSearch
 > cd petFinderSearch
-> mkdir funcs
+> mkdir func
 > code .
 ```
 
@@ -189,7 +192,7 @@ This will launch the wizard to create a new function app porject and add the fir
 
 | Prompt | Value |
 | ------ | ----- |
-| Directory | Browse to the funcs directory we created |
+| Directory | Browse to the "func" directory we created |
 | Launguage | C# |
 | Template | httpTrigger |
 | FunctionName | SearchForNewPets |
@@ -202,6 +205,8 @@ At the bottom-right of the screen a popup will ask you if you want to restore pa
 
 If you want, you can run this "Hello World" example by choosing the menu option "Run->Start Debugging". This will launch the local function runtime and you will see a URL in the output that you can click to call your function.
 
+[Run and Debug Functions Locally](https://docs.microsoft.com/en-us/azure/developer/javascript/tutorial-vscode-serverless-node-03)
+
 Let's take a look at some of the attributes in this function's header:
 
 ``` cs
@@ -213,13 +218,13 @@ Let's take a look at some of the attributes in this function's header:
 
 Typical C# function with a couple of new attributes that the function runtime uses to understand how this function should operate within the context of the function runtime. These "bindings" dictate how the function will be triggered (trigger bindings), what data sources the function will read from (input bindings) and write to (output bindings).
 
-In this case we have an HttpTrigger binding. When the runtime sees an http get or post request at the URL designated for this function, the function code will be executed. Information about the http request will be available to the function in the parameter that is annotated with this httpTrigger attribute.
+In this case we have an [HttpTrigger binding](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook-trigger?tabs=csharp). When the runtime sees an http get or post request at the URL designated for this function, the function code will be executed. Information about the http request will be available to the function in the parameter that is annotated with this httpTrigger attribute.
 
-In this case we have no input or output bindings, we will add them later.
+We have no input or output bindings, hold your horses. We'll get there.
 
 The other parameter is a logger that we can use to log information to the appropriate output. The logger is provided to us by the function runtime.
 
-Let's add the code to get out bearer token and execute a search.
+Let's add the code to get our bearer token and execute a search.
 
 Back in Postman, navigate to your GetToken call. Under the send button you will see the word "Code". Click that link and in the pop dialog look at the code for "C# - RestSharp". This is an example call syntax for this API using a library ReshSharp that we can add to our project.
 
